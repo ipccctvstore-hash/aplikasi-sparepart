@@ -1,0 +1,4 @@
+[
+  { "name": "Owner", "email": "owner@contoh.com", "role": "super" },
+  { "name": "Ali", "email": "ali@contoh.com", "role": "admin" }
+]
