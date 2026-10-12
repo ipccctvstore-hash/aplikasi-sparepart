@@ -1,0 +1,25 @@
+name: Cadangan database
+
+on:
+  schedule:
+    - cron: '0 22 * * *'   # tiap hari 05.00 WIB
+  workflow_dispatch:        # tombol "Run workflow" untuk coba manual
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Dump database
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          test -n "$DB_URL" || { echo "Secret SUPABASE_DB_URL belum diisi"; exit 1; }
+          docker run --rm -e DB_URL postgres:17 sh -c 'pg_dump "$DB_URL" --schema=public --no-owner --no-privileges' | gzip > cadangan.sql.gz
+          test "$(stat -c%s cadangan.sql.gz)" -gt 2000 || { echo "Hasil dump terlalu kecil, dianggap gagal"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cadangan-sparepart-${{ github.run_id }}
+          path: cadangan.sql.gz
+          retention-days: 30
