@@ -11,6 +11,21 @@ export default function PengaturanPage() {
   const [th, setTh] = useState(''), [cv, setCv] = useState(''), [ag, setAg] = useState('');
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => { if (data) { setTh(String(data.ask_threshold)); setCv(nf(data.cover_months)); setAg(String(data.po_aging_days)); } }, [data]);
+  const [dl, setDl] = useState(false);
+  async function unduhCadangan() {
+    if (!(await confirm({ title: 'Unduh cadangan', ok: 'Ya, unduh', msg: 'Unduh cadangan seluruh data sekarang?', detail: 'Berkas ZIP berisi satu CSV per tabel. Simpan di tempat aman karena memuat data customer dan harga.' }))) return;
+    setDl(true); setErr(null);
+    try {
+      const r = await fetch('/api/backup');
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Gagal membuat cadangan.');
+      const cd = r.headers.get('Content-Disposition') || '', name = /filename="([^"]+)"/.exec(cd)?.[1] || 'cadangan-sparepart.zip';
+      const url = URL.createObjectURL(await r.blob());
+      const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      toast('Cadangan terunduh');
+    } catch (e) { setErr(e instanceof Error ? e.message : 'Gagal membuat cadangan.'); }
+    setDl(false);
+  }
   async function save() {
     setErr(null);
     const t = parseInt(th, 10), c = parseFloat(cv.replace(',', '.')), a = parseInt(ag, 10);
@@ -34,6 +49,11 @@ export default function PengaturanPage() {
           <div className="field"><label htmlFor="s-ag">PO ditandai merah setelah (hari sejak dibuat)</label><input id="s-ag" type="text" inputMode="numeric" value={ag} onChange={e => setAg(e.target.value)} /></div>
         </div>
         <div><Btn icon="check" onClick={save}>Simpan</Btn></div>
+      </section>
+      <section className="card">
+        <h2 style={{ margin: 0, fontSize: 16 }}>Cadangan data</h2>
+        <p className="sub" style={{ margin: '6px 0 12px' }}>Setiap hari sekitar pukul 04.30 WIB, sistem menyimpan cadangan otomatis ke penyimpanan privat di Supabase (bucket &quot;cadangan&quot;, 14 hari terakhir). Anda juga bisa mengunduh sendiri kapan saja.</p>
+        <div><Btn icon="download" onClick={unduhCadangan} disabled={dl}>{dl ? 'Menyiapkan…' : 'Unduh cadangan sekarang'}</Btn></div>
       </section>
       <Notice blue>Produk yang ditanya kurang dari ambang berstatus Pantau dan tidak dapat saran PO. Target stok = lama datang supplier + cadangan.</Notice>
     </>

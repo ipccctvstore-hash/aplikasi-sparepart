@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 // Semua halaman butuh login, kecuali yang tercantum. /api/cron/* dijaga CRON_SECRET di route-nya sendiri.
-const PUBLIC = ['/login', '/auth/confirm', '/api/cron'];
+const PUBLIC = ['/login', '/auth/confirm', '/api/cron', '/manifest.webmanifest', '/offline.html', '/sw.js'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
