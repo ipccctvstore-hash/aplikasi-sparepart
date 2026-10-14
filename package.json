@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "test": "vitest run",
-    "impor": "node scripts/impor-excel.mjs",
+    "seed-sql": "node scripts/buat-seed-sql.mjs",
     "buat-user": "node scripts/buat-user.mjs"
   },
   "engines": {

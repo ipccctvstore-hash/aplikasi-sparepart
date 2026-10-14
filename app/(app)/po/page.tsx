@@ -3,7 +3,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { getProducts, getSettings, getSuppliers, notifyChanged, rpc } from '@/lib/db';
-import { dec, fmt, fmtDate, leadTxt, normRange, rangeLabel, rp, todayWib } from '@/lib/format';
+import { dec, fmt, fmtDate, leadShow, normRange, rangeLabel, rp, todayWib } from '@/lib/format';
 import { effKurs, lineStatus, lineUnit, resultText, shipForeignValue } from '@/lib/po';
 import type { Cur } from '@/lib/po';
 import { PO_STATUS_CLS, PO_STATUS_LABEL, TYPE_CLS } from '@/lib/types';
@@ -120,7 +120,7 @@ function Detail({ id }: { id: number }) {
   const st = useLoad(getSettings, []);
   const d = useLoad(async () => {
     const [po, ln, sh, rc, kr] = await Promise.all([
-      sb.from('purchase_orders').select('id,name,po_date,status,supplier_id,kurs_perkiraan,closed_short,supplier:suppliers(id,name,type,currency,lead_months,kurs)').eq('id', id).single(),
+      sb.from('purchase_orders').select('id,name,po_date,status,supplier_id,kurs_perkiraan,closed_short,supplier:suppliers(id,name,type,currency,lead_months,lead_note,kurs)').eq('id', id).single(),
       sb.from('v_po_line_totals').select('line_id,sku,qty,sent,recv').eq('po_id', id).order('line_id'),
       sb.from('po_shipments').select('id,ship_date,note,total_rupiah,items:po_shipment_items(line_id,qty)').eq('po_id', id),
       sb.from('po_receipts').select('id,recv_date,note,items:po_receipt_items(line_id,qty)').eq('po_id', id),
@@ -196,7 +196,7 @@ function Detail({ id }: { id: number }) {
     <>
       <div className="top"><div><Btn sm variant="alt" onClick={() => router.push('/po')}>&larr; Semua PO</Btn>
         <h1 style={{ marginTop: 12 }}>{po.name}</h1>
-        <p className="sub">Supplier <b>{s.name}</b> <Pill cls={TYPE_CLS[s.type]}>{s.type}</Pill>, lama datang {leadTxt(s.lead_months)}. Dibuat {fmtDate(po.po_date)}.{age !== null && <> Umur <Pill cls={age > old ? 'p-red' : 'p-grey'}>{age} hari</Pill></>}{status === 'selesai' && po.closed_short && <> <Pill cls="p-amber">Selesai, kurang {Math.max(0, tq - tr)} pcs</Pill></>}</p></div>
+        <p className="sub">Supplier <b>{s.name}</b> <Pill cls={TYPE_CLS[s.type]}>{s.type}</Pill>, lama datang {leadShow(s.lead_note, s.lead_months)}. Dibuat {fmtDate(po.po_date)}.{age !== null && <> Umur <Pill cls={age > old ? 'p-red' : 'p-grey'}>{age} hari</Pill></>}{status === 'selesai' && po.closed_short && <> <Pill cls="p-amber">Selesai, kurang {Math.max(0, tq - tr)} pcs</Pill></>}</p></div>
         <div className="actions">
           <div className="field" style={{ flex: '0 0 160px' }}><label htmlFor="po-st" className="vh">Status PO</label>
             <select id="po-st" value={status} disabled={canceled} onChange={e => changeStatus(e.target.value as PoStatus)}>{(Object.keys(PO_STATUS_LABEL) as PoStatus[]).map(x => <option key={x} value={x}>{PO_STATUS_LABEL[x]}</option>)}</select></div>

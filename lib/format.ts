@@ -16,6 +16,9 @@ export const dec = (v: unknown): number => parseFloat(String(v ?? '').replace(',
 export const nf = (v: number): string => String(Math.round(v * 10) / 10).replace('.', ',');
 export const leadTxt = (v: number): string => (!(v > 0) ? 'langsung' : v < 1 ? '±' + Math.round(v * 30) + ' hari' : nf(v) + ' bulan');
 
+/** Lama datang untuk tampilan: kisaran yang diketik pemilik ("6-12 bulan") kalau ada, selain itu angka yang dipakai rumus. */
+export const leadShow = (note: string | null | undefined, v: number): string => (note && note.trim() ? note.trim() : leadTxt(v));
+
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
 /** Tanggal hari ini di Jakarta, format YYYY-MM-DD. */

@@ -2,8 +2,8 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { getSettings, notifyChanged, rpc } from '@/lib/db';
-import { fmtDate, leadTxt, nf, recentMonths } from '@/lib/format';
+import { getSettings, getSuppliers, notifyChanged, rpc } from '@/lib/db';
+import { fmtDate, leadShow, nf, recentMonths } from '@/lib/format';
 import { ST_CLS } from '@/lib/types';
 import type { LbRow } from '@/lib/types';
 import { Btn, ErrorBox, IconButton, Notice, Pill, Rule, SortTable, SearchBox, msg, useConfirm, useLoad, useToast } from '@/components/ui';
@@ -32,6 +32,8 @@ export default function BarangPage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const settings = useLoad(getSettings, []);
+  const supList = useLoad(getSuppliers, []);
+  const noteOf = useMemo(() => new Map((supList.data ?? []).map(s => [s.name, s.lead_note])), [supList.data]);
   const st = settings.data;
   const th = lb.th ?? st?.ask_threshold ?? 10, cover = lb.cover ?? st?.cover_months ?? 1;
   const { from, to } = lbDates(lb);
@@ -45,6 +47,10 @@ export default function BarangPage() {
     (data as SyncLast[] ?? []).forEach(r => { if (!seen.has(r.kind)) seen.set(r.kind, r); });
     return seen;
   }, []);
+
+  // Sebelum sync stok pertama berhasil, stok dan Terjual Jurnal tidak ada: Status dihitung dari Ditanya dan qty di PO saja.
+  const stokSynced = !!syncs.data && [...syncs.data.values()].some(r => r.kind === 'stok' && (r.status === 'ok' || r.status === 'part'));
+  const noJurnal = !!syncs.data && !stokSynced;
 
   async function load(offset: number) {
     if (!st) return;
@@ -127,13 +133,13 @@ export default function BarangPage() {
               {(r.monthly ?? []).map((v, i) => <i key={i} className={monthKeys[i] >= a && monthKeys[i] <= b ? '' : 'off'} style={{ height: Math.max(3, Math.round(v / mx * 30)) }} />)}
             </div>) },
           { key: 'asked', label: 'Ditanya', sort: () => 0, render: r => <><b>{r.asked}</b><br /><span className="muted">{r.qsum} pcs diminta</span></> },
-          { key: 'sold', label: 'Terjual (invoice Jurnal)', sort: () => 0, render: r => nf(r.sold) },
+          { key: 'sold', label: 'Terjual (invoice Jurnal)', sort: () => 0, render: r => (noJurnal ? <span className="muted">-</span> : nf(r.sold)) },
           { key: 'need', label: 'Kebutuhan per bulan', sort: () => 0, render: r => nf(r.need) },
-          { key: 'stock', label: 'Stok Jurnal', sort: () => 0, render: r => r.stock },
+          { key: 'stock', label: 'Stok Jurnal', sort: () => 0, render: r => (noJurnal || !r.in_jurnal ? <span className="muted">-</span> : r.stock) },
           { key: 'wait', label: 'Di PO (menunggu kirim)', sort: () => 0, render: r => r.qty_wait },
           { key: 'ship', label: 'Proses kirim', sort: () => 0, render: r => r.qty_ship },
           { key: 'cover', label: 'Cukup untuk', sort: () => 0, render: r => <>{r.cover === null ? '-' : nf(r.cover) + ' bulan'}<br /><span className="muted">target {nf(r.target)}</span></> },
-          { key: 'lead', label: 'Lama datang', sort: () => 0, render: r => <>{leadTxt(r.lead)}<br /><span className="muted">{r.lead_default ? 'belum ada supplier' : r.lead_name}</span></> },
+          { key: 'lead', label: 'Lama datang', sort: () => 0, render: r => <>{leadShow(r.lead_name ? noteOf.get(r.lead_name) : '', r.lead)}<br /><span className="muted">{r.lead_default ? 'belum ada supplier' : r.lead_name}</span></> },
           { key: 'status', label: 'Status', sort: () => 0, render: r => <Pill cls={ST_CLS[r.status]}>{r.status}</Pill> },
           { key: 'saran', label: 'Saran qty PO', sort: () => 0, render: r => (r.saran ? <b>{r.saran}</b> : <span className="muted">-</span>) },
           { key: 'act', label: '', nosort: true, cls: 'act', render: r => <>
@@ -142,6 +148,7 @@ export default function BarangPage() {
         ]} />
       {rows.length < total && <div style={{ display: 'flex', justifyContent: 'center' }}><Btn variant="alt" disabled={busy} onClick={() => load(rows.length)}>{`Muat lagi (${rows.length} dari ${total})`}</Btn></div>}
       <p className="muted" style={{ margin: 0 }}>{rows.length} dari {total} produk.{isSuper ? '' : ' Hapus produk hanya untuk superadmin.'} Periode dihitung {nf(months)} bulan.</p>
+      {noJurnal && <Notice blue>Jurnal belum tersambung, jadi stok dan Terjual belum ada. Status dan Saran qty PO sementara dihitung dari jumlah ditanya dan qty yang sudah di PO saja, pada rentang tanggal yang dipilih. Setelah sync stok pertama berhasil, stok dan Terjual ikut dihitung.</Notice>}
       {st && !settings.error && total === 0 && !busy && !err && !q && lb.status === 'Semua' && <Notice blue>List Barang masih kosong. Impor data awal atau tambah produk dari tombol di atas.</Notice>}
     </>
   );

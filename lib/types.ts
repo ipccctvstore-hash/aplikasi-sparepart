@@ -3,7 +3,7 @@ export type SupplierType = 'Stok sendiri' | 'Lokal' | 'Ex-stock' | 'Indent';
 export type Currency = 'IDR' | 'USD' | 'SGD' | 'CNY';
 export type PoStatus = 'draft' | 'dipesan' | 'selesai' | 'dibatalkan';
 
-export type Supplier = { id: number; name: string; type: SupplierType; lead_months: number; currency: Currency; kurs: number; active: boolean };
+export type Supplier = { id: number; name: string; type: SupplierType; lead_months: number; lead_note: string; currency: Currency; kurs: number; active: boolean };
 export type Customer = { id: number; name: string; note: string; active: boolean };
 export type Settings = { ask_threshold: number; cover_months: number; po_aging_days: number };
 

@@ -6,6 +6,6 @@ node_modules
 next-env.d.ts
 /data
 users.json
-laporan-impor
 *.xlsx
 *.zip
+seed-data

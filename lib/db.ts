@@ -15,7 +15,7 @@ export async function getSettings(): Promise<Settings> {
 }
 export async function getSuppliers(): Promise<Supplier[]> {
   const rows = ok(await sb().from('suppliers').select('*').order('id'));
-  return (rows as Supplier[]).map(s => ({ ...s, lead_months: Number(s.lead_months), kurs: Number(s.kurs) }));
+  return (rows as Supplier[]).map(s => ({ ...s, lead_months: Number(s.lead_months), lead_note: s.lead_note ?? '', kurs: Number(s.kurs) }));
 }
 export async function getCustomers(): Promise<Customer[]> {
   return ok(await sb().from('customers').select('*').order('name')) as Customer[];

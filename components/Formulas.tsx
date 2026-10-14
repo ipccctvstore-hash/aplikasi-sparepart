@@ -23,7 +23,7 @@ export function FxProduct({ r, months, cover, th }: { r: LbRow; months: number; 
   const perMonth = r.need;
   const R: [string, string, string | number][] = [
     ['Kebutuhan per bulan', `max(terjual ${nf(r.sold)}, diminta ${r.qsum}) ÷ ${nf(months)} bulan`, `${nf(perMonth)} pcs`],
-    ['Punya', `stok ${r.stock} + PO ${r.qty_wait + r.qty_ship}`, `${nf(r.have)} pcs`],
+    ['Punya', r.in_jurnal ? `stok ${r.stock} + PO ${r.qty_wait + r.qty_ship}` : `PO ${r.qty_wait + r.qty_ship} (stok Jurnal belum ada)`, `${nf(r.have)} pcs`],
     ['Cukup untuk', `${nf(r.have)} ÷ ${nf(perMonth)}`, perMonth > 0 && r.cover !== null ? nf(r.cover) + ' bulan' : 'tidak ada permintaan'],
     ['Target', `lama datang ${nf(r.lead)}${r.lead_default ? ' (belum ada supplier, anggap 1)' : ' (' + (r.lead_name ?? '') + ')'} + cadangan ${nf(cover)}`, nf(r.target) + ' bulan'],
     ['Status', r.asked < th ? `ditanya ${r.asked} kali, kurang dari ${th}` : perMonth > 0 && r.cover !== null ? `${nf(r.cover)}${r.cover < r.target ? ' < ' : ' ≥ '}${nf(r.target)}` : 'tidak ada permintaan', r.status],

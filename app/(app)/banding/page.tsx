@@ -3,7 +3,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { getSettings, getSuppliers, getProducts, notifyChanged, rpc } from '@/lib/db';
-import { agoTxt, ageOf, fmt, fmtDate, leadTxt, normRange, rangeLabel, todayWib } from '@/lib/format';
+import { agoTxt, ageOf, fmt, fmtDate, leadShow, normRange, rangeLabel, todayWib } from '@/lib/format';
 import { cellRupiah, cheapest, effDiscount } from '@/lib/po';
 import type { Cur } from '@/lib/po';
 import { TYPE_CLS } from '@/lib/types';
@@ -214,7 +214,7 @@ function Detail({ id }: { id: number }) {
             {cols.map(c => (
               <th key={c.s.id} style={{ minWidth: 190 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}><span>{c.s.name}</span><IconButton icon="trash" label={`Hapus kolom ${c.s.name}`} cls="del sm" onClick={() => rmSup(c.s)} /></div>
-                <Pill cls={TYPE_CLS[c.s.type]}>{c.s.type}</Pill> <span className="muted">{leadTxt(c.s.lead_months)}</span>
+                <Pill cls={TYPE_CLS[c.s.type]}>{c.s.type}</Pill> <span className="muted">{leadShow(c.s.lead_note, c.s.lead_months)}</span>
                 {c.s.currency === 'IDR' ? <div className="muted" style={{ marginTop: 6 }}>Rupiah</div> : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}><label className="muted" htmlFor={`ck-${c.s.id}`}>Kurs {c.s.currency}</label>
                     <input id={`ck-${c.s.id}`} type="text" inputMode="numeric" style={{ width: 84, height: 34 }} value={kursIn[c.s.id] ?? String(c.kurs)} onChange={e => setKursIn(k => ({ ...k, [c.s.id]: e.target.value }))}

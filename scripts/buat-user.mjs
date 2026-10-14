@@ -16,6 +16,7 @@ const list = JSON.parse(fs.readFileSync(file, 'utf8'));
 const errs = [];
 if (list.filter(u => u.role === 'super').length > 1) errs.push('Hanya boleh ada 1 superadmin.');
 list.forEach((u, i) => { if (!u.name?.trim() || !/^\S+@\S+\.\S+$/.test(u.email ?? '')) errs.push(`Baris ${i + 1}: nama atau email tidak valid.`); if (u.role && !['admin', 'super'].includes(u.role)) errs.push(`Baris ${i + 1}: role harus admin atau super.`); });
+list.forEach((u, i) => { if (/GANTI/i.test(u.email ?? '')) errs.push(`Baris ${i + 1} (${u.name}): email masih placeholder (${u.email}). Ganti dengan email asli dulu.`); });
 const pw = process.env.INITIAL_PASSWORD;
 if (!pw || pw.length < 8) errs.push('INITIAL_PASSWORD belum diisi di .env.local (minimal 8 karakter).');
 if (errs.length) { errs.forEach(e => console.error('- ' + e)); process.exit(1); }
