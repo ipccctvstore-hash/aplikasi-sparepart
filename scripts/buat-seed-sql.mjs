@@ -3,10 +3,10 @@
 // ditempel/dijalankan di Supabase (SQL Editor). Tidak butuh koneksi database dan tidak membuat laporan CSV.
 //
 //   npm run seed-sql -- --file 2026.xlsx --katalog order_dan_cek_harga.xlsx --po-map peta-po.json
-//   opsi: --out seed-data   --map peta.json   --supplier-map peta-supplier.json   --handles Ali,Nabilla,Yaw,Krisnadi,Adji
+//   opsi: --out supabase/seed-data   --map peta.json   --supplier-map peta-supplier.json   --handles Ali,Nabilla,Yaw,Krisnadi,Adji
 //         --po-terbuka-hari 90   --tgl-cek 2025-12-31   --chunk 900000
 //
-// Hasil (jalankan berurutan di SQL Editor, tiap file bisa diulang dengan aman):
+// Hasil di supabase/seed-data/ (jalankan berurutan di SQL Editor, tiap file bisa diulang dengan aman):
 //   01_customer.sql   cek supplier + akun sudah ada, lalu buat customer
 //   02_produk_N.sql   produk (nama, PL, diskon manual)
 //   03_request_N.sql  request riwayat + baris produk + penawaran supplier (SUPLIER)
@@ -43,7 +43,7 @@ const poMap = Object.fromEntries(Object.entries(readJson('po-map') ?? {}).map(([
 const poOpenDays = Number(opt('po-terbuka-hari', 90)) || 90;
 const checkDate = opt('tgl-cek') && opt('tgl-cek') !== true ? String(opt('tgl-cek')) : '2025-12-31';
 const handles = opt('handles') && opt('handles') !== true ? String(opt('handles')).split(',').map(s => s.trim()).filter(Boolean) : DEFAULT_HANDLES;
-const outDir = opt('out') && opt('out') !== true ? opt('out') : 'seed-data';
+const outDir = opt('out') && opt('out') !== true ? opt('out') : 'supabase/seed-data';
 const maxChunk = Number(opt('chunk', 900000)) || 900000;
 const fallbackHandle = handles.find(h => h.toLowerCase() === 'yaw') ?? handles[0];
 const priceCustomer = 'Cek harga ex-stock (impor Excel)';
